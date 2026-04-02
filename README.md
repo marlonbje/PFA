@@ -12,7 +12,6 @@
 - [Dashboard Modules](#dashboard-modules)
 - [Use Cases](#use-cases)
   - [Factor-Based Portfolio Construction](#factor-based-portfolio-construction)
-  - [Portfolio Optimization](#portfolio-optimization)
   - [Risk Monitoring](#risk-monitoring)
   - [Statistical Arbitrage & Mean Reversion](#statistical-arbitrage--mean-reversion)
 - [Project Structure](#project-structure)
@@ -96,34 +95,6 @@ PCA decomposition is the foundation of **factor investing**. The loading chart i
 - You can use the explained variance chart to decide how many factors are worth modelling explicitly. A rule of thumb: retain PCs that together explain ≥ 80% of variance.
 
 **Practical workflow:** identify the top-3 PC loadings → group stocks by factor exposure → size positions inversely proportional to factor concentration.
-
----
-
-### Portfolio Optimization
-
-PFA feeds directly into mean-variance and factor-model optimization frameworks.
-
-**Beta-based constraints.** The rolling beta panel makes it straightforward to enforce a target portfolio beta at rebalancing time:
-
-```python
-# Example: constrain portfolio beta to [0.8, 1.1]
-betas = pfa.get_betas().iloc[-1]          # latest beta snapshot
-weights = optimize(expected_returns,
-                   cov_matrix,
-                   constraints=[
-                       beta_constraint(betas, lb=0.8, ub=1.1)
-                   ])
-```
-
-**Factor-model covariance.** Rather than using a full historical sample covariance matrix (noisy, ill-conditioned for large N), you can reconstruct a **factor covariance matrix** from the PCA decomposition:
-
-```
-Σ_factor = B · Λ · Bᵀ + D
-```
-
-where `B` is the loading matrix, `Λ` is the diagonal matrix of PC variances, and `D` is a diagonal idiosyncratic noise matrix. This shrinks estimation error significantly and produces more stable optimal weights.
-
-**Z-score signals.** Cross-sectional z-scores are a natural basis for a **long/short signal**: go long stocks with `Z < -2` (statistically cheap relative to peers) and short stocks with `Z > +2` (expensive). Combine with a beta-neutral constraint to isolate the idiosyncratic component.
 
 ---
 
